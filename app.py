@@ -1,4 +1,4 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 from PIL import Image
 import easyocr
@@ -247,28 +247,34 @@ total_validas = len(st.session_state["base_datos_actas"])
 total_observadas = len(st.session_state["base_datos_observadas"])
 
 c1, c2 = st.columns(2)
-with c1: st.metric(label="🗳️ Total de Actas Sumadas/Computadas (Nacional)", value=total_validas)
-with c2: st.metric(label="⚠️ Acumulado Paralelo de Actas Observadas (Pendientes)", value=total_observadas, delta=total_observadas, delta_color="inverse")
+with c1:
+    st.metric(label="🗳️ Total de Actas Sumadas/Computadas (Nacional)", value=len(st.session_state["base_datos_actas"]))
+with c2:
+    st.metric(label="⚠️ Acumulado Paralelo de Actas Observadas (Pendientes)", value=len(st.session_state["base_datos_observadas"]))
 
-    if total_validas > 0:
-        st.write("---")
-        st.subheader("📊 Tendencia Electoral Nacional (LIBRE vs SPT)")
-        
-        partidos = ["LIBRE", "SPT"]
-        votos_totales_partidos = st.session_state["base_datos_actas"][partidos].sum()
-        
-        df_grafico = pd.DataFrame({
-            "Frente Politico": ["LIBRE", "Santa Cruz Para Todos (SPT)"],
-            "Votos Totales": [votos_totales_partidos["LIBRE"], votos_totales_partidos["SPT"]]
-        })
-        
-        st.pie_chart(data=df_grafico, names="Frente Politico", values="Votos Totales", use_container_width=True)
-        
-        excel_binario = procesar_tablas_computo()
-        st.download_button(label="🟩 DESCARGAR LIBRO ELECTORAL CENTRAL (Excel con 7 Pestanas)", data=excel_binario, file_name="computo_electoral_bolivia.xlsx")
-        st.write("### 📊 Detalle del Computo General")
-        st.dataframe(st.session_state["base_datos_actas"], use_container_width=True)
+if len(st.session_state["base_datos_actas"]) > 0:
+    st.write("---")
+    st.subheader("📊 Tendencia Electoral Nacional (LIBRE vs SPT)")
+    
+    partidos = ["LIBRE", "SPT"]
+    votos_totales_partidos = st.session_state["base_datos_actas"][partidos].sum()
+    
+    df_grafico = pd.DataFrame({
+        "Frente Politico": ["LIBRE", "Santa Cruz Para Todos (SPT)"],
+        "Votos Totales": [votos_totales_partidos["LIBRE"], votos_totales_partidos["SPT"]]
+    })
+    
+    st.bar_chart(data=df_grafico, x="Frente Politico", y="Votos Totales", use_container_width=True)
+    
+    excel_binario = procesar_tablas_computo()
+    st.download_button(label="📥 DESCARGAR LIBRO ELECTORAL CENTRAL (Excel con 7 Pestañas)", data=excel_binario, file_name="computo_electoral_bolivia.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    st.write("### 📝 Detalle del Computo General")
+    st.dataframe(st.session_state["base_datos_actas"], use_container_width=True)
+else:
+    st.info("🛰️ Esperando la transmision de datos desde las circunscripciones.")
+password_introducido = st.text_input("🔑 Ingrese la clave de Director:", type="password")
+if password_introducido:
+    if password_introducido == CONTRASENA_DIRECTOR:
+        st.success("🔓 Acceso concedido al Director General.")
     else:
-        st.info("💡 Esperando la transmision de datos desde las circunscripciones.")
-elif password_introduced != "":
-    st.error("❌ Clave incorrecta.")
+        st.error("❌ Contraseña incorrecta. Acceso denegado.")
